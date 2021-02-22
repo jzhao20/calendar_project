@@ -135,5 +135,113 @@ router.route('/remove_event').post((req,res)=>{
     })
 })
 
+router.route ('/remove_event_type').post((req,res)=>{
+    const event_name = req.body.event_name
+    event_types.findOne().then(event_list=>
+        {
+            
+            var array_event_type = event_list.events
+            var exists = -1
+            for(var i = 0; i < array_event_type.length; i++){
+                if(array_event_type[i] == event_name){
+                    array_event_type.splice(i,1)
+                    event_list.events = array_event_type
+                    event_list.save()
+                    exists = i
+                    break
+                }
+            }
+            if(exists === -1){
+                res.status(400).json({event:"event type doesn't exist"})
+            }
+            else{
+                events.find({event_category:event_name}).then(i_events=>{
+                    for(var i = 0; i < i_events.length; i++){
+                        i_events[i].event_category = ""
+                        i_events[i].save()
+                    }
+                })
+                res.json("finished")
+                return;
+            }
+        })
+})
+router.route('/remove_event_type_and_events').post((req,res)=>{
+    const event_name = req.body.event_name
+    event_types.findOne().then(event_list=>
+        {
+            
+            var array_event_type = event_list.events
+            var exists = -1
+            for(var i = 0; i < array_event_type.length; i++){
+                if(array_event_type[i] == event_name){
+                    array_event_type.splice(i,1)
+                    event_list.events = array_event_type
+                    event_list.save()
+                    exists = i
+                    break
+                }
+            }
+            if(exists === -1){
+                res.status(400).json({event:"event type doesn't exist"})
+            }
+            else{
+                events.remove({event_category:event_name}, function(err,result){
+                    if(err){
+                        res.send(err)
+                    }
+                    else{
+                        res.send(result)
+                    }
+                })
+            }
+        })
+})
+router.route('/update_event_type').get((req,res)=>{
+    event_types.findOne().then(event_list=>{
+        var array_event_type = event_list.events
+        var found = false
+        for(var i = 0; i < array_event_type.length; i++){
+            if(array_event_type[i] == req.param("event_category")){
+                array_event_type[i] = req.param("new_event_category")
+                event_list.events = array_event_type
+                found = true
+                event_list.save(function(err, result){
+                    if(err){
+                        res.json("failed")
+                        return handleError(err);
+                    }
+                    else{
+                        console.log(result)
+                        res.json(result)
+                        return
+                    }
+                })
+                break;
+            }
+        }
+        if(!found)
+        {
+            res.status(400).json({event:"event not found"})
+            return
+        }
+        else{
+            events.updateMany({event_category:req.param("event_category")}, {$set:{event_category:req.param("new_event_category")}}, function(err,result){
+            if(err)
+                res.send(err)
+            else
+                res.send(result)
+            })
+
+        }
+    })
+})
+
+router.route('/find_event_type').get((req,res)=>{
+    console.log(req.param("event_category"))
+    events.find({"event_category":req.param("event_category")}).then(i_events=>{
+        res.json(i_events)
+    })
+})
 
 module.exports = router;
