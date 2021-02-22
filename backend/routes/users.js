@@ -2,19 +2,19 @@ const router = require('express').Router();
 const validateLoginInput = require('../validation/validate_log_in');
 const validateRegistrationInput = require('../validation/validate_registration');
 const jwt = require("jsonwebtoken");
-let user = require('../models/users.model');
-
-router.route('/register').get((req,res)=>{
+let users = require('../models/users.model');
+const keys = require("../keys")
+router.route('/register').post((req,res)=>{
     const {errors, isValid} = validateRegistrationInput(req.body);
     if(!isValid){
         return res.status(400).json(errors);
     }
-    user.findOne({email:req.body.email}).then(user=>{
+    users.findOne({email:req.body.email}).then(user=>{
         if(user){
             return res.status(400).json({email:"Email already exists"});
         }
         else{
-            const new_user = new user({
+            const new_user = new users({
                 email:req.body.email,
                 password:req.body.password,
                 events:[]
@@ -25,14 +25,14 @@ router.route('/register').get((req,res)=>{
     })
 });
 
-router.post("/login", (req,res)=>{
+router.route("/login").post((req,res)=>{
     const {errors,isValid} = validateLoginInput(req.body);
     if(!isValid){
         return res.status(400).json(errors);
     }
     const email = req.body.email;
     const password = req.body.password;
-    user.findOne({email}).then(user=>{
+    users.findOne({email}).then(user=>{
         if(!user){
             return res.status(404).json({email_not_found:"Email not found"});
         }
@@ -60,5 +60,8 @@ router.post("/login", (req,res)=>{
         }
     })
 });
-
+router.route("/test").get((req,res)=>{
+    res.json("hello")
+    return "Hello";
+})
 module.exports = router;
