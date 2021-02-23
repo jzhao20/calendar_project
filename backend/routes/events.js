@@ -203,20 +203,9 @@ router.route('/update_event_type').get((req,res)=>{
         var found = false
         for(var i = 0; i < array_event_type.length; i++){
             if(array_event_type[i] == req.param("event_category")){
-                array_event_type[i] = req.param("new_event_category")
-                event_list.events = array_event_type
+                event_list.events.set(i, req.param("new_event_category"))
+                event_list.save()
                 found = true
-                event_list.save(function(err, result){
-                    if(err){
-                        res.json("failed")
-                        return handleError(err);
-                    }
-                    else{
-                        console.log(result)
-                        res.json(result)
-                        return
-                    }
-                })
                 break;
             }
         }
